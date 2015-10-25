@@ -1,0 +1,9 @@
+com.jogamp.opencl
+com.jogamp.opencl.gl
+com.jogamp.opencl.impl
+com.jogamp.opencl.llb
+com.jogamp.opencl.llb.gl
+com.jogamp.opencl.llb.impl
+com.jogamp.opencl.spi
+com.jogamp.opencl.util
+com.jogamp.opencl.util.concurrent
