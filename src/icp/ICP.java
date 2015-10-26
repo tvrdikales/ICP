@@ -153,7 +153,7 @@ public class ICP implements GLEventListener {
 
             glu = new GLU();
             skybox = new Skybox(100, drawable.getGL().getGL2());
-            terrain = new Terrain(1.0f, 100);
+            terrain = new Terrain(1.0f, 100,drawable.getGL().getGL2());
         } catch (IOException ex) {
             Logger.getLogger(ICP.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(0);

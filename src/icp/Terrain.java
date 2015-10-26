@@ -4,6 +4,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.sun.prism.impl.BufferUtil;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 /**
  * Objekt reprezentující terén po kterém se hráè pohybuje
@@ -24,7 +25,7 @@ public class Terrain implements I_DrawableGrob {
      * @param squareSize Velikost jednoho ètvereèku,
      * @param squareCount Poèet ètvereèkù v jednom smìru
      */
-    public Terrain(float squareSize, int squareCount) {
+    public Terrain(float squareSize, int squareCount,GL2 gl) {
         this.squareCount = squareCount;
         // naètení výškové mapy, prozatím jen flatland
 
@@ -68,18 +69,23 @@ public class Terrain implements I_DrawableGrob {
                 colors.put(0);
             }
         }
+        
+//        IntBuffer vertexArray = IntBuffer.allocate(1);
+//        gl.glGenVertexArrays(1, vertexArray);
+//        gl.glBindVertexArray(vertexArray.get(0));
     }
 
     @Override
     public void draw(GL2 gl) {
         // není kompletní - nefunguje !!!
+        
         gl.glGenBuffers(bufferSize, null);
         gl.glEnable(GL2.GL_VERTEX_ARRAY);
         gl.glEnable(GL2.GL_COLOR_ARRAY);
         vertices.rewind();
         colors.rewind();
         gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-        gl.glVertexPointer(3, GL.GL_FLOAT, 0, colors);
+        gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
         
         gl.glDrawArrays(GL2.GL_QUADS, 0, squareCount * squareCount);
     }
