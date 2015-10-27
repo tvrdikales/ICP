@@ -24,17 +24,18 @@ public class Skybox implements I_DrawableGrob {
      */
     public Skybox(double size, GL2 gl) throws IOException {
         this.size = size;
-        front = TextureIO.newTexture(new File("C:\\Users\\Ales\\Documents\\NetBeansProjects\\ICP\\textures\\front.jpg"), true);
-        back = TextureIO.newTexture(new File("C:\\Users\\Ales\\Documents\\NetBeansProjects\\ICP\\textures\\back.jpg"), true);
-        left = TextureIO.newTexture(new File("C:\\Users\\Ales\\Documents\\NetBeansProjects\\ICP\\textures\\left.jpg"), true);
-        right = TextureIO.newTexture(new File("C:\\Users\\Ales\\Documents\\NetBeansProjects\\ICP\\textures\\right.jpg"), true);
-        down = TextureIO.newTexture(new File("C:\\Users\\Ales\\Documents\\NetBeansProjects\\ICP\\textures\\down.jpg"), true);
-        up = TextureIO.newTexture(new File("C:\\Users\\Ales\\Documents\\NetBeansProjects\\ICP\\textures\\up.jpg"), true);
+        front = TextureIO.newTexture(new File("./textures\\front.jpg"), true);
+        back = TextureIO.newTexture(new File("./textures\\back.jpg"), true);
+        left = TextureIO.newTexture(new File("./textures\\left.jpg"), true);
+        right = TextureIO.newTexture(new File("./textures\\right.jpg"), true);
+        down = TextureIO.newTexture(new File("./textures\\down.jpg"), true);
+        up = TextureIO.newTexture(new File("./textures\\up.jpg"), true);
     }
 
     @Override
     public void draw(GL2 gl) {
         gl.glEnable(GL2.GL_TEXTURE_2D);
+        gl.glColor3f(1,1, 1);
         gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
 
         // bottom

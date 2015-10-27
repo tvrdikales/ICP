@@ -24,64 +24,78 @@ public class Terrain implements I_DrawableGrob {
      * @param squareSize Velikost jednoho ètvereèku,
      * @param squareCount Poèet ètvereèkù v jednom smìru
      */
-    public Terrain(float squareSize, int squareCount) {
+    public Terrain(float squareSize, int squareCount, GL2 gl) {
         this.squareCount = squareCount;
         // naètení výškové mapy, prozatím jen flatland
 
         // 4 body na quad * 3 (X,Y,Z) * poèet quadù celkem
-        bufferSize = 3 * 4 * (squareCount) * (squareCount);
+        bufferSize = 3 * 4 * (squareCount) * (squareCount)+1;
         vertices = BufferUtil.newFloatBuffer(bufferSize);
         colors = BufferUtil.newFloatBuffer(bufferSize);
+        
+        float startX = -squareSize*(squareCount/2);
+        float startZ = squareSize*(squareCount/2);
 
         for (int i = 0; i < squareCount; i++) {
             for (int j = 0; j < squareCount; j++) {
-                vertices.put(squareSize * i);
+                vertices.put(startX + squareSize * i);
                 vertices.put(0);
-                vertices.put(-squareSize * j);
+                vertices.put(startZ -squareSize * j);
 
                 colors.put(0);
                 colors.put(1);
                 colors.put(0);
 
-                vertices.put((squareSize * i) + squareSize);
+                vertices.put(startX+(squareSize * i) + squareSize);
                 vertices.put(0);
-                vertices.put(-squareSize * j);
+                vertices.put(startZ-squareSize * j);
 
                 colors.put(0);
                 colors.put(1);
                 colors.put(0);
 
-                vertices.put((squareSize * i) + squareSize);
+                vertices.put(startX+(squareSize * i) + squareSize);
                 vertices.put(0);
-                vertices.put(-((squareSize * j) + squareSize));
+                vertices.put(startZ-((squareSize * j) + squareSize));
 
                 colors.put(0);
                 colors.put(1);
                 colors.put(0);
 
-                vertices.put(squareSize * i);
+                vertices.put(startX+squareSize * i);
                 vertices.put(0);
-                vertices.put(-((squareSize * j) + squareSize));
+                vertices.put(startZ-((squareSize * j) + squareSize));
 
                 colors.put(0);
                 colors.put(1);
                 colors.put(0);
             }
         }
+        gl.glEnable(GL2.GL_VERTEX_ARRAY);
+        gl.glEnable(GL2.GL_COLOR_ARRAY);
+        gl.glVertexPointer(2, GL.GL_FLOAT, 0, vertices.position(0));
+        gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
     }
 
     @Override
     public void draw(GL2 gl) {
-        // není kompletní - nefunguje !!!
-        gl.glGenBuffers(bufferSize, null);
-        gl.glEnable(GL2.GL_VERTEX_ARRAY);
-        gl.glEnable(GL2.GL_COLOR_ARRAY);
+        gl.glBegin(GL2.GL_QUADS);
+        gl.glColor3f(0.0f,1.0f,0.0f);
         vertices.rewind();
         colors.rewind();
-        gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-        gl.glVertexPointer(3, GL.GL_FLOAT, 0, colors);
+        //gl.glDrawArrays(GL2.GL_QUADS, 0, bufferSize);
+        int ii=0;
+        float[] array = new float[bufferSize];
+        vertices.get(array);
         
-        gl.glDrawArrays(GL2.GL_QUADS, 0, squareCount * squareCount);
+        while(ii<bufferSize-1){
+            gl.glVertex3f(array[ii],array[ii+1],array[ii+2]);
+            gl.glVertex3f(array[ii+3],array[ii+4],array[ii+5]);
+            gl.glVertex3f(array[ii+6],array[ii+7],array[ii+8]);
+            gl.glVertex3f(array[ii+9],array[ii+10],array[ii+11]);
+            ii=ii+12;
+        }
+        gl.glEnd();
     }
 
 }

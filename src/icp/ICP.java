@@ -138,7 +138,7 @@ public class ICP implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         try {
             camPosX = 0;
-            camPosY = 2;
+            camPosY = 5;
             camPosZ = 0;
 
             camDirX = 1;
@@ -152,8 +152,8 @@ public class ICP implements GLEventListener {
             cursorY = Integer.MAX_VALUE;
 
             glu = new GLU();
-            skybox = new Skybox(100, drawable.getGL().getGL2());
-            terrain = new Terrain(1.0f, 100);
+            skybox = new Skybox(500, drawable.getGL().getGL2());
+            terrain = new Terrain(1.0f, 100,drawable.getGL().getGL2());
         } catch (IOException ex) {
             Logger.getLogger(ICP.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(0);
@@ -164,19 +164,21 @@ public class ICP implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
         gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+        gl.glClearColor(0, 0, 0, 0);
 
         // nastavení kamery
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
-        gl.glOrtho(-30, 30, -30, 30, 0, 150);
+        gl.glOrtho(-20, 20, -20, 20, 0, 800);
         glu.gluLookAt(camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ, 0, 1, 0);
 
         // vykreslení objektù
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
         terrain.draw(gl);
-        gl.glTranslated(camPosX, camPosY, camPosZ);
         skybox.draw(gl);
+        gl.glTranslated(camPosX, camPosY, camPosZ);
+        
     }
 
     @Override
