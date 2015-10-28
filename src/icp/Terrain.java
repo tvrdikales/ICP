@@ -37,18 +37,8 @@ public class Terrain implements I_DrawableGrob {
         bufferSize = 3 * 4 * (squareCount) * (squareCount) + 1;
         vertices = BufferUtil.newFloatBuffer(bufferSize);
         colors = BufferUtil.newFloatBuffer(bufferSize);
-
-        //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        //Mat img2 = Highgui.imread("./textures/map.bmp");
-        //System.loadLibrary("opencv_java249");
-        //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-        File file = new File("C:\\Users\\spartan\\Documents\\NetBeansProjects\\ICP\\textures\\map.bmp");
-        if (!file.exists()) {
-            System.out.println("nejde to!");
-        }
         
-        Mat img2 = Highgui.imread("C:\\Users\\spartan\\Documents\\NetBeansProjects\\ICP\\textures\\map.bmp", Highgui.CV_LOAD_IMAGE_GRAYSCALE);
-        //Mat img2 = Highgui.imread("C:\\Users\\spartan\\Documents\\NetBeansProjects\\cv1_icp\\cv01\\cv01\\lightbulb.jpg", Highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        Mat bitmapImage = Highgui.imread("./textures\\map.bmp", Highgui.CV_LOAD_IMAGE_GRAYSCALE);
         
         
         System.out.println("");
@@ -59,46 +49,44 @@ public class Terrain implements I_DrawableGrob {
         for (int i = 0; i < squareCount; i++) {
             for (int j = 0; j < squareCount; j++) {
                 vertices.put(startX + squareSize * i);
-                //vertices.put(0);
-                vertices.put(((float)img2.get(i, j)[0])/(float)256*(ICP.SKYBOX_SIZE/2f));
+                vertices.put(0);
+                //vertices.put(((float)img2.get(i, j)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - squareSize * j);
 
+                float green = (float)Math.random();
+                
                 colors.put(0);
-                colors.put(1);
+                colors.put(0);
                 colors.put(0);
 
                 vertices.put(startX + (squareSize * i) + squareSize);
-                //vertices.put(0);
-                vertices.put(((float)img2.get(i+1, j)[0])/(float)256*(ICP.SKYBOX_SIZE/2f));
+                vertices.put(0);
+                //vertices.put(((float)img2.get(i+1, j)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - squareSize * j);
 
                 colors.put(0);
-                colors.put(1);
+                colors.put(0);
                 colors.put(0);
 
                 vertices.put(startX + (squareSize * i) + squareSize);
-                //vertices.put(0);
-                vertices.put(((float)img2.get(i+1, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/2f));
+                vertices.put(0);
+                //vertices.put(((float)img2.get(i+1, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - ((squareSize * j) + squareSize));
 
                 colors.put(0);
-                colors.put(1);
+                colors.put(0);
                 colors.put(0);
 
                 vertices.put(startX + squareSize * i);
-                //vertices.put(0);
-                vertices.put(((float)img2.get(i, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/2f));
+                vertices.put(0);
+                //vertices.put(((float)img2.get(i, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - ((squareSize * j) + squareSize));
 
                 colors.put(0);
-                colors.put(1);
+                colors.put(0);
                 colors.put(0);
             }
         }
-        gl.glEnable(GL2.GL_VERTEX_ARRAY);
-        gl.glEnable(GL2.GL_COLOR_ARRAY);
-        gl.glVertexPointer(2, GL.GL_FLOAT, 0, vertices.position(0));
-        gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
     }
 
     @Override

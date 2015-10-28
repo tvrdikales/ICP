@@ -14,12 +14,13 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.*;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ICP implements GLEventListener {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     /**
      * Možné pohyby kamery(hráèe) pomocí W,A,S,D
@@ -33,6 +34,8 @@ public class ICP implements GLEventListener {
      * Násobitel rychlosti otáèení
      */
     public final double ROTATION_MULTIPLIER = 1;
+    
+    public static final float SKYBOX_SIZE = 40f;
 
     private GLU glu;
     /**
@@ -40,6 +43,7 @@ public class ICP implements GLEventListener {
      */
     private Skybox skybox;
     private Terrain terrain;
+    private Box box;
 
     /**
      * Souøadnice bodu, na který kouká kamera
@@ -62,12 +66,23 @@ public class ICP implements GLEventListener {
      */
     private double angleY;
 
+    private long time = 0;
+    private int frames = 0;
+
     /**
      * Vytvoøení okna, navìšení listenerù
      *
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
+        System.out.println(System.getProperty("java.library.path"));
+        System.setProperty("java.library.path", "C:\\opencv\\build\\java\\x64\\");
+
+        Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+        fieldSysPath.setAccessible(true);
+        fieldSysPath.set(null, null);
+        System.loadLibrary("opencv_java249");
+
         GLProfile glp = GLProfile.getDefault();
         GLCapabilities caps = new GLCapabilities(glp);
         GLWindow canvas = GLWindow.create(caps);
@@ -137,8 +152,10 @@ public class ICP implements GLEventListener {
     @Override
     public void init(GLAutoDrawable drawable) {
         try {
+            drawable.getGL().getGL2().glEnable(GL.GL_DEPTH_TEST);
+
             camPosX = 0;
-            camPosY = 5;
+            camPosY = 3;
             camPosZ = 0;
 
             camDirX = 1;
@@ -152,8 +169,11 @@ public class ICP implements GLEventListener {
             cursorY = Integer.MAX_VALUE;
 
             glu = new GLU();
-            skybox = new Skybox(500, drawable.getGL().getGL2());
-            terrain = new Terrain(1.0f, 100,drawable.getGL().getGL2());
+            skybox = new Skybox(ICP.SKYBOX_SIZE, drawable.getGL().getGL2());
+            terrain = new Terrain(1f, 255, drawable.getGL().getGL2());
+            
+            this.box = new Box(-5, -5, -5, 100, 100, 100, drawable.getGL().getGL2());
+            
         } catch (IOException ex) {
             Logger.getLogger(ICP.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(0);
@@ -162,23 +182,33 @@ public class ICP implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable drawable) {
+        if (System.nanoTime() - time > 1000000000) {
+            time = System.nanoTime();
+            //System.out.println("frames = " + frames);
+            frames = 0;
+        }
+        frames++;
+
         GL2 gl = drawable.getGL().getGL2();
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-        gl.glClearColor(0, 0, 0, 0);
+
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         // nastavení kamery
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
-        gl.glOrtho(-20, 20, -20, 20, 0, 800);
+        gl.glOrtho(-3, 3, -3, 3, 0, 100);
         glu.gluLookAt(camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ, 0, 1, 0);
 
         // vykreslení objektù
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
         terrain.draw(gl);
-        skybox.draw(gl);
+        gl.glLoadIdentity();
         gl.glTranslated(camPosX, camPosY, camPosZ);
+        skybox.draw(gl);
         
+        // smazat, jen pro testování
+        box.draw(gl);
     }
 
     @Override
@@ -196,30 +226,31 @@ public class ICP implements GLEventListener {
      * dívá
      */
     private void updateCameraPosition(E_Direction direction) {
+        float c = 0.02f;
         switch (direction) {
             case FORWARD:
-                camPosX += Math.cos(angleX);
-                camPosZ -= Math.sin(angleX);
-                camDirX += Math.cos(angleX);
-                camDirZ -= Math.sin(angleX);
+                camPosX += c * Math.cos(angleX);
+                camPosZ -= c * Math.sin(angleX);
+                camDirX += c * Math.cos(angleX);
+                camDirZ -= c * Math.sin(angleX);
                 break;
             case BACKWARD:
-                camPosX -= Math.cos(angleX);
-                camPosZ += Math.sin(angleX);
-                camDirX -= Math.cos(angleX);
-                camDirZ += Math.sin(angleX);
+                camPosX -= c * Math.cos(angleX);
+                camPosZ += c * Math.sin(angleX);
+                camDirX -= c * Math.cos(angleX);
+                camDirZ += c * Math.sin(angleX);
                 break;
             case LEFT:
-                camPosX += Math.cos(angleX + (Math.PI / 2));
-                camPosZ -= Math.sin(angleX + (Math.PI / 2));
-                camDirX += Math.cos(angleX + (Math.PI / 2));
-                camDirZ -= Math.sin(angleX + (Math.PI / 2));
+                camPosX += c * Math.cos(angleX + (Math.PI / 2));
+                camPosZ -= c * Math.sin(angleX + (Math.PI / 2));
+                camDirX += c * Math.cos(angleX + (Math.PI / 2));
+                camDirZ -= c * Math.sin(angleX + (Math.PI / 2));
                 break;
             case RIGHT:
-                camPosX += Math.cos(angleX - (Math.PI / 2));
-                camPosZ -= Math.sin(angleX - (Math.PI / 2));
-                camDirX += Math.cos(angleX - (Math.PI / 2));
-                camDirZ -= Math.sin(angleX - (Math.PI / 2));
+                camPosX += c * Math.cos(angleX - (Math.PI / 2));
+                camPosZ -= c * Math.sin(angleX - (Math.PI / 2));
+                camDirX += c * Math.cos(angleX - (Math.PI / 2));
+                camDirZ -= c * Math.sin(angleX - (Math.PI / 2));
                 break;
         }
         if (DEBUG) {

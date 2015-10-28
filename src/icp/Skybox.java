@@ -35,8 +35,8 @@ public class Skybox implements I_DrawableGrob {
     @Override
     public void draw(GL2 gl) {
         gl.glEnable(GL2.GL_TEXTURE_2D);
-        gl.glColor3f(1,1, 1);
-        gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, new float[]{1, 1, 1}, 0);
+        gl.glColor3f(1, 1, 1 );
+        gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_SPECULAR, new float[]{0, 0,0}, 0);
 
         // bottom
         down.enable(gl);
@@ -83,7 +83,7 @@ public class Skybox implements I_DrawableGrob {
         gl.glEnd();
         left.disable(gl);
 
-        // right
+       // right
         right.enable(gl);
         right.bind(gl);
         gl.glBegin(GL2.GL_QUADS);
@@ -97,8 +97,8 @@ public class Skybox implements I_DrawableGrob {
         gl.glVertex3d((size / 2), (size / 2), -(size / 2));
         gl.glEnd();
         right.disable(gl);
-
-        // front
+//
+//        // front
         front.enable(gl);
         front.bind(gl);
         gl.glBegin(GL2.GL_QUADS);
