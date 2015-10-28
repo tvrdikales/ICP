@@ -78,16 +78,16 @@ public class Terrain implements I_DrawableGrob {
     @Override
     public void draw(GL2 gl) {
         // není kompletní - nefunguje !!!
-        
-        gl.glGenBuffers(bufferSize, null);
-        gl.glEnable(GL2.GL_VERTEX_ARRAY);
-        gl.glEnable(GL2.GL_COLOR_ARRAY);
-        vertices.rewind();
-        colors.rewind();
-        gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
-        gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
-        
-        gl.glDrawArrays(GL2.GL_QUADS, 0, squareCount * squareCount);
+//        
+//        gl.glGenBuffers(bufferSize, null);
+//        gl.glEnable(GL2.GL_VERTEX_ARRAY);
+//        gl.glEnable(GL2.GL_COLOR_ARRAY);
+//        vertices.rewind();
+//        colors.rewind();
+//        gl.glVertexPointer(3, GL.GL_FLOAT, 0, vertices);
+//        gl.glColorPointer(3, GL.GL_FLOAT, 0, colors);
+//        
+//        gl.glDrawArrays(GL2.GL_QUADS, 0, squareCount * squareCount);
     }
 
 }
