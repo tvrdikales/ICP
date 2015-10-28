@@ -14,7 +14,7 @@ public class Skybox implements I_DrawableGrob {
 
     private double size;
     Texture front, back, left, right, down, up;
-
+    // jsem debil
     /**
      * Skybox
      *
