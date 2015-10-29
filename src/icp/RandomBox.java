@@ -16,6 +16,7 @@ public class RandomBox extends Box{
     private double specialPosition;
     private final float xStartPosition;
     private final float yStartPosition;
+    
 
     public RandomBox(float xStart, float yStart, float zStart, float xSize, float ySize, float zSize, GL2 gl) {
         super(xStart, yStart, zStart, xSize, ySize, zSize, gl);
@@ -36,7 +37,6 @@ public class RandomBox extends Box{
         
         super.draw(gl); //To change body of generated methods, choose Tools | Templates.
     }
-    
     
     
 }

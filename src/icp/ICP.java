@@ -15,6 +15,8 @@ import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.util.*;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -170,7 +172,13 @@ public class ICP implements GLEventListener {
 
             glu = new GLU();
             skybox = new Skybox(ICP.SKYBOX_SIZE, drawable.getGL().getGL2());
-            terrain = new Terrain(1f, 255, drawable.getGL().getGL2());
+            
+            // naètou se mapy, ve høe bude nìjaké GUI a možnost volby
+            ArrayList<String> paths = Terrain.getPathToMaps(); 
+            
+            terrain = new Terrain(1f, 255, paths.get(3));
+            
+            
             
             this.box = new RandomBox((float)-1, (float)-1, (float)-4, (float)2, (float)2, (float)2, drawable.getGL().getGL2());
             
@@ -204,11 +212,11 @@ public class ICP implements GLEventListener {
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
         box.draw(gl);
-        //terrain.draw(gl);
+        terrain.draw(gl);
         
         gl.glLoadIdentity();
         gl.glTranslated(camPosX, camPosY, camPosZ);
-        //skybox.draw(gl);
+        skybox.draw(gl);
         
         // smazat, jen pro testování
         

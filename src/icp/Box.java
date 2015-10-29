@@ -5,9 +5,7 @@
  */
 package icp;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
-import java.nio.FloatBuffer;
 
 /**
  *
