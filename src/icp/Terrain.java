@@ -49,8 +49,8 @@ public class Terrain implements I_DrawableGrob {
         for (int i = 0; i < squareCount; i++) {
             for (int j = 0; j < squareCount; j++) {
                 vertices.put(startX + squareSize * i);
-                vertices.put(0);
-                //vertices.put(((float)img2.get(i, j)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
+                //vertices.put(0);
+                vertices.put(((float)bitmapImage.get(i, j)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - squareSize * j);
 
                 float green = (float)Math.random();
@@ -60,8 +60,8 @@ public class Terrain implements I_DrawableGrob {
                 colors.put(0);
 
                 vertices.put(startX + (squareSize * i) + squareSize);
-                vertices.put(0);
-                //vertices.put(((float)img2.get(i+1, j)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
+                //vertices.put(0);
+                vertices.put(((float)bitmapImage.get(i+1, j)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - squareSize * j);
 
                 colors.put(0);
@@ -69,8 +69,8 @@ public class Terrain implements I_DrawableGrob {
                 colors.put(0);
 
                 vertices.put(startX + (squareSize * i) + squareSize);
-                vertices.put(0);
-                //vertices.put(((float)img2.get(i+1, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
+                //vertices.put(0);
+                vertices.put(((float)bitmapImage.get(i+1, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - ((squareSize * j) + squareSize));
 
                 colors.put(0);
@@ -78,8 +78,8 @@ public class Terrain implements I_DrawableGrob {
                 colors.put(0);
 
                 vertices.put(startX + squareSize * i);
-                vertices.put(0);
-                //vertices.put(((float)img2.get(i, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
+                //vertices.put(0);
+                vertices.put(((float)bitmapImage.get(i, j+1)[0])/(float)256*(ICP.SKYBOX_SIZE/4f));
                 vertices.put(startZ - ((squareSize * j) + squareSize));
 
                 colors.put(0);

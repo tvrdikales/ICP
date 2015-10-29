@@ -43,7 +43,7 @@ public class ICP implements GLEventListener {
      */
     private Skybox skybox;
     private Terrain terrain;
-    private Box box;
+    private RandomBox box;
 
     /**
      * Souøadnice bodu, na který kouká kamera
@@ -155,7 +155,7 @@ public class ICP implements GLEventListener {
             drawable.getGL().getGL2().glEnable(GL.GL_DEPTH_TEST);
 
             camPosX = 0;
-            camPosY = 3;
+            camPosY = 0;
             camPosZ = 0;
 
             camDirX = 1;
@@ -172,7 +172,7 @@ public class ICP implements GLEventListener {
             skybox = new Skybox(ICP.SKYBOX_SIZE, drawable.getGL().getGL2());
             terrain = new Terrain(1f, 255, drawable.getGL().getGL2());
             
-            this.box = new Box(-5, -5, -5, 100, 100, 100, drawable.getGL().getGL2());
+            this.box = new RandomBox((float)-1, (float)-1, (float)-4, (float)2, (float)2, (float)2, drawable.getGL().getGL2());
             
         } catch (IOException ex) {
             Logger.getLogger(ICP.class.getName()).log(Level.SEVERE, null, ex);
@@ -199,16 +199,19 @@ public class ICP implements GLEventListener {
         gl.glOrtho(-3, 3, -3, 3, 0, 100);
         glu.gluLookAt(camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ, 0, 1, 0);
 
+        
         // vykreslení objektù
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
-        terrain.draw(gl);
+        box.draw(gl);
+        //terrain.draw(gl);
+        
         gl.glLoadIdentity();
         gl.glTranslated(camPosX, camPosY, camPosZ);
-        skybox.draw(gl);
+        //skybox.draw(gl);
         
         // smazat, jen pro testování
-        box.draw(gl);
+        
     }
 
     @Override
