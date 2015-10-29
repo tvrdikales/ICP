@@ -91,6 +91,10 @@ public class Terrain implements I_DrawableGrob {
                 colors.put(0);
             }
         }
+        
+//        IntBuffer vertexArray = IntBuffer.allocate(1);
+//        gl.glGenVertexArrays(1, vertexArray);
+//        gl.glBindVertexArray(vertexArray.get(0));
     }
 
     @Override
