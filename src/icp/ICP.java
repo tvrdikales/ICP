@@ -175,8 +175,8 @@ public class ICP implements GLEventListener {
             
             // naètou se mapy, ve høe bude nìjaké GUI a možnost volby
             ArrayList<String> paths = Terrain.getPathToMaps(); 
-            
-            terrain = new Terrain(1f, 255, paths.get(3));
+            System.out.println(paths.get(0));
+            terrain = new Terrain(5, 5, 10, 10, 3f, paths.get(0));
             
             
             
@@ -204,7 +204,7 @@ public class ICP implements GLEventListener {
         // nastavení kamery
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
-        gl.glOrtho(-3, 3, -3, 3, 0, 100);
+        gl.glOrtho(-3, 3, -3, 3, -10, 100);
         glu.gluLookAt(camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ, 0, 1, 0);
 
         
