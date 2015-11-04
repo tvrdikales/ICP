@@ -248,5 +248,4 @@ public class Terrain implements I_DrawableGrob {
 
         return paths;
     }
-
 }
