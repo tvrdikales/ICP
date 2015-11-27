@@ -10,11 +10,11 @@ import java.io.IOException;
  *
  * @author Ales
  */
-public class Skybox implements I_DrawableGrob {
+public class Skybox{
 
     private double size;
-    Texture front, back, left, right, down, up;
-    // jsem debil
+    private Texture front, back, left, right, down, up;
+    
     /**
      * Skybox
      *
@@ -31,8 +31,7 @@ public class Skybox implements I_DrawableGrob {
         down = TextureIO.newTexture(new File("./textures\\down.jpg"), true);
         up = TextureIO.newTexture(new File("./textures\\up.jpg"), true);
     }
-
-    @Override
+   
     public void draw(GL2 gl) {
         gl.glEnable(GL2.GL_TEXTURE_2D);
         gl.glColor3f(1, 1, 1 );

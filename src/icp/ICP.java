@@ -1,5 +1,7 @@
 package icp;
 
+import icp.graphics.logic.Tank;
+import icp.graphics.Terrain;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
@@ -12,23 +14,28 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.glu.gl2.GLUgl2;
 import com.jogamp.opengl.util.*;
+import com.jogamp.opengl.util.gl2.GLUT;
+import icp.graphics.screens.MessageScreen;
+import icp.graphics.screens.StartScreen;
+import icp.net.client.Client;
+import icp.net.server.Server;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.geometry.Point3D;
 
 public class ICP implements GLEventListener {
 
-    public static final boolean DEBUG = false;
+    public static final float SKYBOX_SIZE = 40f;
 
     /**
      * Možné pohyby kamery(hráèe) pomocí W,A,S,D
      */
     public enum E_Direction {
-
         FORWARD, BACKWARD, LEFT, RIGHT;
     }
 
@@ -36,25 +43,26 @@ public class ICP implements GLEventListener {
      * Násobitel rychlosti otáèení
      */
     public final double ROTATION_MULTIPLIER = 1;
-    
-    public static final float SKYBOX_SIZE = 40f;
 
-    private GLU glu;
     /**
-     * Skybox
+     * Udává, zdali je zobrazena obrazovka s výbìrem role (øidiè/støelec) po
+     * startu aplikace
      */
-    private Skybox skybox;
-    private Terrain terrain;
-    private RandomBox box;
+    public boolean menuDisplayed = true;
+
+    private double uhel = 0;
+
+    private GLU glu = new GLUgl2();
+    private GLUT glut = new GLUT();
 
     /**
      * Souøadnice bodu, na který kouká kamera
      */
-    private double camDirX, camDirY, camDirZ;
+    private float camDirX, camDirY, camDirZ;
     /**
      * Souøadnice bodu, na kterém se nachází kamera
      */
-    private double camPosX, camPosY, camPosZ;
+    private float camPosX, camPosY, camPosZ;
     /**
      * Poslední známé souøadnice kurzoru myši
      */
@@ -67,9 +75,27 @@ public class ICP implements GLEventListener {
      * Úhel ve stupních, který svírá kamera s osou -Z v rovinì X=0
      */
     private double angleY;
+    /**
+     * Velikost hracího okna. Defaultnì dle nastavených hodnot, za bìhu je možné
+     * mìnit
+     */
+    private int windowWidth = 800;
+    private int windowHeight = 600;
 
+    /**
+     * Grafické objekty scény
+     */
+    private StartScreen startScreen = new StartScreen(glut, this);
+    private MessageScreen messageScreen = null;
+    private Skybox skybox;
+    private Terrain terrain;
+    private Tank tank;
+
+    private Server server;
+    private Client client;
     private long time = 0;
     private int frames = 0;
+    private ActiveKey activeKey;
 
     /**
      * Vytvoøení okna, navìšení listenerù
@@ -77,7 +103,6 @@ public class ICP implements GLEventListener {
      * @param args
      */
     public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
-        System.out.println(System.getProperty("java.library.path"));
         System.setProperty("java.library.path", "C:\\opencv\\build\\java\\x64\\");
 
         Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
@@ -89,9 +114,14 @@ public class ICP implements GLEventListener {
         GLCapabilities caps = new GLCapabilities(glp);
         GLWindow canvas = GLWindow.create(caps);
 
+        final ICP main = new ICP(canvas);
+        main.start(canvas);
+    }
+
+    public ICP(GLWindow canvas) {
         canvas.setTitle("ICP");
         canvas.setSize(800, 600);
-        canvas.setVisible(true);
+        activeKey = new ActiveKey();
         canvas.addWindowListener(new com.jogamp.newt.event.WindowAdapter() {
 
             @Override
@@ -101,37 +131,54 @@ public class ICP implements GLEventListener {
             }
         });
 
-        final ICP main = new ICP();
-        canvas.addGLEventListener(main);
+        canvas.addGLEventListener(this);
         canvas.addKeyListener(new KeyAdapter() {
+            
+            
+            
+            @Override
+            public void keyReleased(KeyEvent ke) {
+                super.keyReleased(ke); //To change body of generated methods, choose Tools | Templates.
+                activeKey.setDeactive(ke.getKeyCode());
+            }
 
             @Override
             public void keyPressed(com.jogamp.newt.event.KeyEvent ke) {
                 super.keyPressed(ke); //To change body of generated methods, choose Tools | Templates.
+                activeKey.setActive(ke.getKeyCode());
+                
                 switch (ke.getKeyCode()) {
                     case KeyEvent.VK_W:
-                        main.updateCameraPosition(E_Direction.FORWARD);
+                        tank.turnUp();
+                        //updateCameraPosition(E_Direction.FORWARD);
                         break;
                     case KeyEvent.VK_S:
-                        main.updateCameraPosition(E_Direction.BACKWARD);
+                        tank.turnDown();
+                        //updateCameraPosition(E_Direction.BACKWARD);
                         break;
                     case KeyEvent.VK_A:
-                        main.updateCameraPosition(E_Direction.LEFT);
+                        tank.turnLeft();
+                        //updateCameraPosition(E_Direction.LEFT);
                         break;
                     case KeyEvent.VK_D:
-                        main.updateCameraPosition(E_Direction.RIGHT);
+                        tank.turnRight();
+                        //updateCameraPosition(E_Direction.RIGHT);
                         break;
                     case KeyEvent.VK_UP:
-                        main.updateCameraDirection(main.cursorX, main.cursorY + 1);
+
+                        updateCameraDirection(cursorX, cursorY + 1);
                         break;
                     case KeyEvent.VK_DOWN:
-                        main.updateCameraDirection(main.cursorX, main.cursorY - 1);
+
+                        updateCameraDirection(cursorX, cursorY - 1);
                         break;
                     case KeyEvent.VK_LEFT:
-                        main.updateCameraDirection(main.cursorX - 1, main.cursorY);
+
+                        updateCameraDirection(cursorX - 1, cursorY);
                         break;
                     case KeyEvent.VK_RIGHT:
-                        main.updateCameraDirection(main.cursorX + 1, main.cursorY);
+
+                        updateCameraDirection(cursorX + 1, cursorY);
                         break;
                 }
 
@@ -143,26 +190,76 @@ public class ICP implements GLEventListener {
             @Override
             public void mouseMoved(MouseEvent me) {
                 super.mouseMoved(me); //To change body of generated methods, choose Tools | Templates.
-                main.updateCameraDirection(me.getX(), me.getY());
+
+                updateCameraDirection(me.getX(), me.getY()); // kamera se hýbe i v menu z dùvodu že se mi to vcelku líbí
+
+                if (menuDisplayed) {
+                    startScreen.updateMenuItemIfMouseOver(me.getX(), me.getY());
+                } else {
+
+                }
+            }
+
+            @Override
+            public void mousePressed(MouseEvent me) {
+                super.mousePressed(me); //To change body of generated methods, choose Tools | Templates.
+                if (menuDisplayed) {
+                    StartScreen.MenuItem pressedItem = startScreen.getMenuItemOnLocation(me.getX(), me.getY());
+                    if (pressedItem != null) {
+                        switch (pressedItem) {
+                            case SERVER:
+                                setMessageScreen(new MessageScreen(glut, ICP.this, "Waiting for shooter"));
+                                try {
+                                    server = new Server(ICP.this);
+                                    server.start();
+                                } catch (IOException ex) {
+                                    Logger.getLogger(ICP.class.getName()).log(Level.SEVERE, null, ex);
+                                    System.exit(0);
+                                }
+                                break;
+                            case CLIENT:
+                                setMessageScreen(new MessageScreen(glut, ICP.this, "Connecting to server"));
+                                client = new Client(ICP.this);
+                                client.start();
+                                break;
+                            default:
+                        }
+                    }
+                } else {
+
+                }
             }
         });
+    }
+
+    public void start(GLWindow canvas) {
+        canvas.setVisible(true);
 
         AnimatorBase animator = new FPSAnimator(canvas, 60);
         animator.start();
     }
 
+    public int getWindowHeight() {
+        return windowHeight;
+    }
+
+    public int getWindowWidth() {
+        return windowWidth;
+    }
+
     @Override
     public void init(GLAutoDrawable drawable) {
         try {
-            drawable.getGL().getGL2().glEnable(GL.GL_DEPTH_TEST);
+            GL gl = drawable.getGL();
+            gl.getGL2().glEnable(GL.GL_DEPTH_TEST);
 
-            camPosX = 0;
-            camPosY = 0;
+            camPosX = 5;
+            camPosY = 1.2f;
             camPosZ = 0;
 
-            camDirX = 1;
+            camDirX = 0;
             camDirY = 0;
-            camDirZ = 0;
+            camDirZ = 1;
 
             angleX = 0;
             angleY = 0;
@@ -170,18 +267,20 @@ public class ICP implements GLEventListener {
             cursorX = Integer.MAX_VALUE;
             cursorY = Integer.MAX_VALUE;
 
-            glu = new GLU();
+            // inicializace objektù scény
             skybox = new Skybox(ICP.SKYBOX_SIZE, drawable.getGL().getGL2());
-            
+
             // naètou se mapy, ve høe bude nìjaké GUI a možnost volby
-            ArrayList<String> paths = Terrain.getPathToMaps(); 
-            System.out.println(paths.get(0));
-            terrain = new Terrain(5, 5, 10, 10, 3f, paths.get(0));
-            
-            
-            
-            this.box = new RandomBox((float)-1, (float)-1, (float)-4, (float)2, (float)2, (float)2, drawable.getGL().getGL2());
-            
+            ArrayList<String> paths = Terrain.getPathToMaps();
+            terrain = new Terrain(5, 5, 20, 20, 0.7f, paths.get(0));
+
+            this.tank = new Tank(1f, 1f, 1f, 0.2f, 0.2f, 0.3f, gl.getGL2(), terrain, 0.01f, 0.01f, 180, activeKey);
+
+//            for (double x = -2.5; x <= 2.5; x += 0.5) {
+//                for (double y = -2.5; y <= 2.5; y += 0.5) {
+//                    System.out.println(x+", "+y+" => "+this.terrain.heightInPosition(x, y));
+//                }
+//            }
         } catch (IOException ex) {
             Logger.getLogger(ICP.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(0);
@@ -190,6 +289,8 @@ public class ICP implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable drawable) {
+        GL2 gl = drawable.getGL().getGL2();
+
         if (System.nanoTime() - time > 1000000000) {
             time = System.nanoTime();
             //System.out.println("frames = " + frames);
@@ -197,29 +298,59 @@ public class ICP implements GLEventListener {
         }
         frames++;
 
-        GL2 gl = drawable.getGL().getGL2();
-
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         // nastavení kamery
         gl.glMatrixMode(GL2.GL_PROJECTION);
         gl.glLoadIdentity();
-        gl.glOrtho(-3, 3, -3, 3, -10, 100);
-        glu.gluLookAt(camPosX, camPosY, camPosZ, camDirX, camDirY, camDirZ, 0, 1, 0);
+        glu.gluPerspective(60, 16 / 9, 1, 100);
 
-        
+//        camPosX = tank.getXStart()+tank.getXSize();
+//        camPosY = tank.getYStart();
+//        camPosZ = tank.getZStart()+tank.getZSize();
+//        
+//        camDirX = camPosX;
+//        camDirY = camPosY;
+//        camDirZ = camPosZ+5;
+        glu.gluLookAt(camPosX, camPosY + 0.2, camPosZ, camDirX, camDirY, camDirZ, 0, 1, 0);
+//        glu.gluLookAt(tank.getXStart()+camPosX, tank.getYStart()+camPosY, tank.getZStart()+camPosZ, tank.getXStart()+camDirX, tank.getYStart()+camDirY, tank.getZStart()+camDirZ, 0, 1, 0);
+        //skybox.draw(gl); // skybox se pøi zobrazeném menu vykresluje z dùvodu že se mi to vcelku líbí víc než statický obrázek
+//        if (messageScreen != null) {
+//            messageScreen.draw(gl);
+//
+//            return;
+//        }
+//
+//        if (menuDisplayed) {
+//            startScreen.draw(gl);
+//            return;
+//        }
+
         // vykreslení objektù
         gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glLoadIdentity();
-        box.draw(gl);
+
         terrain.draw(gl);
+        //camPosY = terrain.heightByNewPos(camDirX, camPosZ);
+        //terrain.setRotateAngle(new Point3D(0, 0, 0));
+        //tank.setRotateByPoint(new Point3D(tank.getXStart(), tank.getYStart(), tank.getZStart()));
+        //uhel += 4;
+        //tank.setRotateAngle(new Point3D(uhel, 0, 0));
+        tank.draw(gl);
+        //tank.setRotateAngle(new Point3D(10, uhel, 0));
+        //tank.setRotateByPoint(new Point3D(tank.getXStart(), tank.getYStart(), tank.getZStart()));
         
+        //tank.setRotateByPoint(new Point3D(tank.getXStart(), tank.getYStart(), tank.getZStart()));
+        //tank.setRotateByPoint(new Point3D(tank.getXStart(), tank.getYStart(), tank.getZStart()));
+        //tank.setRotateAngle(new Point3D(30, 0, 0));
+        // vypoètení objektù
+        //tank.evaluateNextStep(7);
+
+        //tank.evaluateNextStep(17);
+        //System.out.println(box.collision(new Vertex(-2, 0, 0)));
         gl.glLoadIdentity();
         gl.glTranslated(camPosX, camPosY, camPosZ);
         skybox.draw(gl);
-        
-        // smazat, jen pro testování
-        
     }
 
     @Override
@@ -228,6 +359,9 @@ public class ICP implements GLEventListener {
 
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) {
+        windowHeight = h;
+        windowWidth = w;
+        startScreen.setVertexModified(true);
     }
 
     /**
@@ -237,7 +371,7 @@ public class ICP implements GLEventListener {
      * dívá
      */
     private void updateCameraPosition(E_Direction direction) {
-        float c = 0.02f;
+        float c = 0.04f;
         switch (direction) {
             case FORWARD:
                 camPosX += c * Math.cos(angleX);
@@ -264,10 +398,9 @@ public class ICP implements GLEventListener {
                 camDirZ -= c * Math.sin(angleX - (Math.PI / 2));
                 break;
         }
-        if (DEBUG) {
-            System.out.println("camPosX = " + camPosX);
-            System.out.println("camPosZ = " + camPosZ);
-        }
+
+        //System.out.println("camPosX = " + camPosX);
+        //System.out.println("camPosZ = " + camPosZ);
     }
 
     /**
@@ -284,16 +417,38 @@ public class ICP implements GLEventListener {
             angleY = angleY < -Math.PI / 2 ? -Math.PI / 2 : angleY;
             angleY = angleY > Math.PI / 2 ? Math.PI / 2 : angleY;
 
-            camDirX = camPosX + Math.cos(angleX);
-            camDirY = camPosY + Math.sin(angleY);
-            camDirZ = camPosZ - Math.sin(angleX);
+            camDirX = (float) (camPosX + Math.cos(angleX));
+            camDirY = (float) (camPosY + Math.sin(angleY));
+            camDirZ = (float) (camPosZ - Math.sin(angleX));
         }
         cursorX = x;
         cursorY = y;
 
-        if (DEBUG) {
-            System.out.println("angleX = " + angleX + "(" + (angleX / Math.PI) * 180 + ")");
-            System.out.println("angleY = " + angleY + "(" + (angleY / Math.PI) * 180 + ")");
-        }
+        //System.out.println("angleX = " + angleX + "(" + (angleX / Math.PI) * 180 + ")");
+        //System.out.println("angleY = " + angleY + "(" + (angleY / Math.PI) * 180 + ")");
+    }
+
+    public void destroyMessage() {
+        messageScreen = null;
+    }
+
+    public float getCamPosX() {
+        return camPosX;
+    }
+
+    public float getCamPosY() {
+        return camPosY;
+    }
+
+    public float getCamPosZ() {
+        return camPosZ;
+    }
+
+    public synchronized void setMessageScreen(MessageScreen screen) {
+        this.messageScreen = screen;
+    }
+
+    public GLUT getGLUT() {
+        return glut;
     }
 }
